@@ -1,0 +1,56 @@
+body {
+	
+}
+
+table {
+	border-style: double;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-top: 0%;
+	margin-bottom: 0%;
+	width: 90%;
+	max-width: 90%;
+	height: 90%;
+	max-height: 90%;
+  background-color: black;
+}
+
+#bc {
+  color: red;
+  font-size: 18px;
+  font-weight: bold;
+  position: absolute;
+  height: 500px;
+}
+
+.one {
+	background-color: #D2691E;
+}
+
+.two {
+	background-color: #8B4513;
+}
+
+td {
+	max-width: 6%;
+	width: 6%;
+	height: 8%;
+	max-height: 8%;
+	font-size: 350%;
+	text-align: center;
+  border-width: 25%;
+}
+
+.filler {
+	padding: 3%;
+}
+
+#highlight {
+	position: absolute;
+	background-color: white;
+	color: white;
+	font-size: 425%;
+	padding-left: 4.5%;
+	padding-right: 4.5%;
+	opacity: 50%;
+}
