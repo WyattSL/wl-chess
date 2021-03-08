@@ -18,15 +18,57 @@ for (x=8;x>=1;x--) {
 		r.onclick = SelPiece;
 		r.appendChild(d)
 		setTimeout(function(x, y) {
-		    Draw(x,y,"")
-			//Draw(x,y,x+":"+y)
+		    //Draw(x,y,"")
+			Draw(x,y,x+":"+y)
 		},1,x,y)
 	}
 	game.appendChild(r)
 }
 
+function log(x) {
+  var y = document.createElement("p")
+  y.innerHTML = x;
+  document.getElementById("log").appendChild(y);
+}
+
+window.log = log;
+window.onerror = function(event) {
+  log("Error!")
+  log(JSON.stringify(event))
+}
+
+var makeNewGame = true;
+
 function LoadBoard(board) {
-  Board = board; // finish laters
+  makeNewGame = false;
+  log(JSON.stringify(board));
+  var i;
+  turn = board.turn;
+  for (i in board) {
+    var p = board[i];
+    log(p);
+    if (!p.type) continue;
+    switch (p.type) {
+      case "Pawn":
+        new Pawn(p.y, p.x, p.color);
+        break;
+      case "Bishop":
+        new Bishop(p.y, p.x, p.color);
+        break;
+      case "Rook":
+        new Rook(p.y, p.x, p.color);
+        break;
+      case "Knight":
+        new Knight(p.y,p.x,p.color);
+        break;
+      case "Queen":
+        new Queen(p.y, p.x, p.color);
+        break;
+      case "King":
+        new King(p.y, p.x, p.color);
+        break;
+    }
+  }
 }
 
 var AI = false;
@@ -47,6 +89,14 @@ if (location.href.includes("bot")) { // AI it is...
   */
 }
 
+var freeStyle = false;
+
+if (location.href.includes("free")) {
+  freeStyle = true;
+}
+
+var Board = {};
+
 
 function Draw(x, y, text) {
 	var e = document.getElementById("piece "+x+":"+y)
@@ -57,20 +107,6 @@ function Draw(x, y, text) {
 	}
 	e.innerHTML = text;
 }
-
-function log(x) {
-  var y = document.createElement("p")
-  y.innerHTML = x;
-  document.getElementById("log").appendChild(y);
-}
-
-window.log = log;
-window.onerror = function(event) {
-  log("Error!")
-  log(JSON.stringify(event))
-}
-
-var Board = {};
 
 function getOffset( el ) {
 	var _x = 0;
@@ -97,13 +133,13 @@ function SelPiece(event) {
   if (!allowMove) return;
   
   if (SelectedPiece && (!sel || sel.color != SelectedPiece.color)) {
-	if (SelectedPiece.CanMove(x, y)) {
+	if ((SelectedPiece.CanMove(x, y) && SelectedPiece.CanMoveExt(x, y)) || freeStyle) {
 		SelectedPiece.Move(x,y)
     document.getElementById(`piece ${x}:${y}`).style.borderStyle = "none"
     SelectedPiece = null;
 	}
   } else {
-	if (sel && ((turn && sel.color == 2) || (!turn && sel.color == 1))) {
+	if (sel && (((turn && sel.color == 2) || (!turn && sel.color == 1))) || freeStyle) {
 	  SelectedPiece = sel;
 	  
 	  e.style.borderStyle = "dashed"
@@ -124,7 +160,7 @@ function SelPiece(event) {
           MovesDB.push(col)
           continue;
         }
-        if ((!b || b.color != sel.color) && sel.CanMove(Number(x), Number(y))) {
+        if ((!b || b.color != sel.color) && ((sel.CanMove(Number(x), Number(y)) && sel.CanMoveExt(Number(x), Number(y))))) {
           col.style.borderStyle = "dotted"
           if (!b) col.style.borderStyle = "solid";
           col.style.borderColor = "red";
@@ -143,9 +179,9 @@ function WinGame(color) {
   allowMove = false;
   let e = document.getElementById("bc")
   if (color == 1) {
-    e.innerHTML = "White<br>wins!"
+    e.innerHTML = "Checkmate:<br>White<br>wins!"
   } else {
-    e.innerHTML = "Black<br>wins!"
+    e.innerHTML = "Checkmate:<br>Black<br>wins!"
   }
 }
 
@@ -233,6 +269,12 @@ function isCheckmate(tx,ty,color) {
    }
 }
 
+function isEmpty(y,x) {
+  if (Board[x+":"+y]) return false;
+  log("empty "+x+", "+y)
+  return true;
+}
+
 var WKPOS;
 var BKPOS;
 var turn;
@@ -266,6 +308,8 @@ class Piece {
       MovesDB[i].style.borderColor = MovesDB[i].style.backgroundColor
     }
     turn = !turn;
+    Board["turn"] = turn;
+    //location.hash = "#"+JSON.stringify(Board);
     var tx;
     var ty;
     /*
@@ -287,6 +331,17 @@ class Piece {
     */
 	}
   Capture(x, y) {}
+  CanMoveExt(x, y) {
+    if (this.color == 1) {
+      var tx = WKPOS.split(":")[0]
+      var ty = WKPOS.split(":")[1]
+    } else {
+      var tx = BKPOS.split(":")[0]
+      var ty = BKPOS.split(":")[1]
+    }
+    if (isCheckmate(tx,ty,this.color) && this.type != "King") return false;
+    return true;
+  }
 }
 
 class Pawn extends Piece {
@@ -451,10 +506,39 @@ class King extends Piece {
   }
   CanMove(x, y, stackPatch) {
     if (stackPatch) return false;
+    let x2 = x;
+    //x = y;
+    //y = x2;
     if (isCheckmate(x,y,this.color)) return false;
+    if (this.color == 2 && (y == 3 || y == 7) && x == 8 && !this.hasMoved) {
+      if (y == 3 && isEmpty(4, 8)) {
+        return true;
+      } else if (y == 7 && isEmpty(6, 8)) {
+        return true;
+      }
+    } else if (this.color == 1 && (y == 3 || y == 7) && x == 1 && !this.hasMoved) {
+      if (y == 3 && isEmpty(4, 1)) {
+        return true;
+      } else if (y == 7 && isEmpty(6, 1)) {
+        return true;
+      }
+    }
     if (Diff(x, this.x) > 1) return false;
     if (Diff(y, this.y) > 1) return false;
     return true;
+  }
+  MoveExt(y,x) {
+    log(x+"/"+this.x); // 1-1 | white fortress
+    log(y+"/"+this.y); // 7-5 |
+    if (Diff(y, this.y) > 1) {
+      if (y == 3) {
+        Board[this.x+":1"].Move(x,4)
+        turn=!turn;
+      } else if (y == 7) {
+        Board[this.x+":8"].Move(x,6)
+        turn=!turn;
+      }
+    }
   }
   CaptureExt(x, y) {
     if (this.color == 2) WinGame(1)
@@ -599,7 +683,12 @@ class Rook extends Piece {
 	}
 }
 
+if (location.hash) {
+  makeNewGame = false;
+  setTimeout(LoadBoard, 3, JSON.parse(decodeURIComponent(location.hash.split("#")[1])));
+}
+
 if (game.requestFullscreen) game.requestFullscreen();
 if (game.webkitRequestFullscreen) game.webkitRequestFullscreen();
 if (game.msRequestFullscreen) game.msRequestFullscrean();
-setTimeout(NewGame, 3)
+if (makeNewGame) setTimeout(NewGame, 3)

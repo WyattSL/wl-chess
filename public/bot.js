@@ -8,8 +8,10 @@ const cmd = function(x) {
   engine.postMessage(x);
 }
 
-function oninit() {
+function newgame() {
+  var game = enginegame();
   
+  game.setSkillLevel(20)
 }
 
 const uci_command = function() {
@@ -20,4 +22,4 @@ engine.onmessage = function(event) {
   window.log("MSG: "+event.data)
 }
 
-//cmd("uci");
+cmd("uci");

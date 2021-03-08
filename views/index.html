@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Page Title</title>
+		<title>Chess</title>
     <link href="/style.css" rel="stylesheet">
+    <link rel="icon" href="/favicon">
     <script src="/client.js" defer></script>
     <script>
       function init() {
@@ -17,6 +18,20 @@
 	  <table id="game">
 		<div id="highlight">.</div>
 	  </table>
+    <div id="promotion">
+      <button onclick="promote('queen')">
+        ♛
+      </button>
+      <button onclick="promote('knight')">
+        ♞
+      </button>
+      <button onclick="promote('bishop')">
+        ♝
+      </button>
+      <button onclick="promote('rook')">
+        ♜
+      </button>
+    </div>
     <div id="log">
       
     </div>

@@ -48,10 +48,16 @@ db.serialize(() => {
 app.get("/stockfish.wasm", (req, res) => {
   console.log("wasm");
   res.redirect("https://cdn.glitch.com/a50b697f-f812-4ab0-938f-a5a829313fea%2Fstockfish.wasm?v=1614949406500")
-})
+});
+
+app.get("/favicon.ico", (req, res) => {
+  console.log("favicon")
+  res.redirect("https://iconarchive.com/download/i94452/blackvariant/button-ui-system-apps/Chess.ico");
+});
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/*", (request, response) => {
+  console.log(request.path);
   response.sendFile(`${__dirname}/views/index.html`);
 });
 
